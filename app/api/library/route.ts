@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import type { Dataset, Paper } from '@/lib/types';
-
-const DATASET_PATH = path.join(process.cwd(), 'public', 'data', 'claims.json');
+import claimsData from '@/data/claims.json';
 
 export interface PaperWithClaims extends Paper {
   claimCount: number;
@@ -13,8 +10,7 @@ let cache: { papers: PaperWithClaims[]; claimCount: number } | null = null;
 
 function load() {
   if (!cache) {
-    const raw = fs.readFileSync(DATASET_PATH, 'utf-8');
-    const dataset = JSON.parse(raw) as Dataset;
+    const dataset = claimsData as Dataset;
     // Per-paper claim counts grouped by paper_id.
     const counts = new Map<string, number>();
     for (const c of dataset.claims) {

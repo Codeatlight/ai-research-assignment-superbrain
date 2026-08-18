@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import type { Dataset, SupportStatus } from '@/lib/types';
 import { retrieveClaims, RETRIEVAL_THRESHOLD } from '@/lib/retrieval';
 import { assessClaims, type BatchVerifyResult, type EvidenceContext } from '@/lib/assess';
 import { chatJSON } from '@/lib/llm';
+// Import the corpus at build time so it is bundled into the serverless function,
+// deterministically available on Vercel regardless of fs tracing / process.cwd().
+import claimsData from '@/data/claims.json';
 
-// Server-side, cached dataset loaded once from the shipped public asset. The
-// client never sends the dataset; the server reads it directly.
-let datasetCache: Dataset | null = null;
+// Server-side singleton (the imported JSON is already a build-time constant).
+const datasetCache: Dataset = claimsData as Dataset;
 
 function loadDataset(): Dataset {
-  if (!datasetCache) {
-    const raw = fs.readFileSync(
-      path.join(process.cwd(), 'public', 'data', 'claims.json'),
-      'utf-8',
-    );
-    datasetCache = JSON.parse(raw) as Dataset;
-  }
   return datasetCache;
 }
 
@@ -168,6 +161,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ answer, claims: assessed });
   } catch (err) {
+    // Diagnostic only — never log the key value, only its presence.
+    console.error('[ask] error:', err instanceof Error ? err.message : err);
+    console.error('[ask] GROQ_API_KEY present:', !!process.env.GROQ_API_KEY);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
       { status: 500 },
