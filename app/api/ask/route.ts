@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
       evidence_text: r.claim.evidence_text,
       source_location: r.claim.source_location,
     }));
-    console.log('[ask] context built. GROQ_API_KEY present:', !!process.env.GROQ_API_KEY, 'GROQ_MODEL name:', process.env.GROQ_MODEL || 'default(llama-3.3-70b-versatile)');
+    console.log('[ask] context built. GROQ_API_KEY present:', !!process.env.GROQ_API_KEY, 'GROQ_MODEL name:', process.env.GROQ_MODEL || 'default(openai/gpt-oss-120b)');
     console.log('[ask] calling Groq for answer');
 
     const { answer, answer_claims } = await chatJSON<AnswerLLMResult>(

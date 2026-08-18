@@ -5,7 +5,7 @@
 
 // Runtime model is configurable via GROQ_MODEL (server-side env); falls back to
 // a default so the app still works when the env var is absent.
-export const GROQ_MODEL = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
+export const GROQ_MODEL = process.env.GROQ_MODEL ?? 'openai/gpt-oss-120b';
 const GROQ_BASE_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 /** Call Groq once and return the raw assistant message content string. */
