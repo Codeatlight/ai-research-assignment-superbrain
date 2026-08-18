@@ -28,18 +28,18 @@ export default function Home() {
   function formatStatus(s: any): string {
     const st = s.state || s.status;
     switch (st) {
-      case 'uploaded': return 'Uploaded — starting processing…';
+      case 'uploaded': return 'Uploading PDF — starting processing…';
       case 'extracting_text': return 'Extracting text…';
       case 'extracting_claims': return `Extracting claims — Batch ${(s.batch ?? 0) + 1}/${s.total_batches ?? '?'}`;
-      case 'retrying_batch': return `Batch ${(s.batch ?? 0) + 1} needs recovery — retrying…`;
-      case 'recovering': return `Recovering batch ${(s.batch ?? 0) + 1} — processing sub-batches…`;
+      case 'retrying_batch': return `Retrying a batch — processing…`;
+      case 'recovering': return 'Recovering a batch — processing…';
       case 'recovering_blocks': return 'Recovering difficult blocks…';
       case 'embedding': return 'Generating embeddings…';
-      case 'merging': return 'Adding paper to corpus…';
+      case 'merging': return 'Updating research library…';
       case 'completed':
-      case 'completed_uploaded': return `Paper added successfully — ${s.claims_added ?? 0} claims added.`;
+      case 'completed_uploaded': return `Upload complete — ${s.claims_added ?? 0} claims added.`;
       case 'already_exists': return 'This paper is already in the corpus.';
-      case 'failed': return `Paper could not be completely processed. Nothing was added to the corpus.`;
+      case 'failed': return 'Upload failed. The paper could not be processed.';
       default: return s.reason || 'Processing…';
     }
   }
@@ -58,7 +58,11 @@ export default function Home() {
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) {
-        setUploadStatus(data.error || 'Upload failed');
+        setUploadStatus(
+          res.status === 409
+            ? 'An upload is already being processed. Please wait for it to finish.'
+            : 'Upload failed. Please check the file and try again.',
+        );
         setUploading(false);
         return;
       }
@@ -212,7 +216,8 @@ export default function Home() {
               </p>
             )}
             <p className="muted" style={{ margin: 0 }}>
-              {paper.claimCount} claims
+              <strong style={{ color: '#c6cddb', fontSize: '1.05rem' }}>{paper.claimCount}</strong>{' '}
+              {paper.claimCount === 1 ? 'claim' : 'claims'}
             </p>
           </div>
         ))}

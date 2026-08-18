@@ -29,10 +29,18 @@ a {
   border: 1px solid #262b36;
   border-radius: 10px;
   padding: 1.25rem;
+  overflow-wrap: anywhere;
 }
 
 .muted {
   color: #8b93a3;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  overflow-wrap: break-word;
 }
 
 .badge {

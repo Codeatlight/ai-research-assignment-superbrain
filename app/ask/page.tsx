@@ -25,7 +25,25 @@ function AskForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Map a raw API/LLM error to a concise, user-friendly message. The full
+  // technical detail is still logged to the console for debugging.
+  function friendlyError(err: unknown): string {
+    const msg = err instanceof Error ? err.message : String(err);
+    const text = msg.toLowerCase();
+    if (text.includes('429') || text.includes('rate limit') || text.includes('tokens per minute')) {
+      return 'Unable to generate an answer right now. The language model service has temporarily reached its usage limit. Please try again later.';
+    }
+    if (text.includes('fetch failed') || text.includes('network')) {
+      return 'Could not reach the answer service. Please check your connection and try again.';
+    }
+    if (text.includes('insufficient_evidence') || text.includes('no retrieved evidence')) {
+      return 'No evidence in the research corpus was relevant enough to answer this question.';
+    }
+    return 'Unable to generate an answer right now. Please try again later.';
+  }
+
   async function run(q: string) {
+    if (loading) return; // prevent duplicate submissions
     setLoading(true);
     setError(null);
     setResult(null);
@@ -45,7 +63,9 @@ function AskForm() {
       if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
       setResult(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // Log the raw detail for debugging, but show only a friendly message.
+      console.error('Ask error:', e);
+      setError(friendlyError(e));
     } finally {
       setLoading(false);
     }
@@ -96,7 +116,7 @@ function AskForm() {
             opacity: loading ? 0.6 : 1,
           }}
         >
-          {loading ? 'Working…' : 'Ask'}
+          {loading ? 'Researching…' : 'Ask'}
         </button>
       </form>
 
@@ -104,13 +124,12 @@ function AskForm() {
         <div className="card" style={{ borderColor: '#7a2027', marginBottom: '1.5rem' }}>
           <p style={{ color: '#f07b7b', margin: 0 }}>{error}</p>
           <p className="muted" style={{ margin: '0.5rem 0 0' }}>
-            The system returned the request as-is rather than fabricating support.
-            Try again later or rephrase.
+            The answer was not generated rather than returning a partial result.
           </p>
         </div>
       )}
 
-      {loading && <p className="muted">Retrieving claims, generating answer, and verifying…</p>}
+      {loading && <p className="muted">Researching the corpus, generating an answer, and verifying each claim…</p>}
 
       {result && (
         <>
@@ -139,6 +158,12 @@ function AskForm() {
                       : SUPPORT_LABELS[claim.status as keyof typeof SUPPORT_LABELS] ?? claim.status}
                   </button>
                 </div>
+                {claim.status === 'unverified' && (
+                  <p className="muted" style={{ margin: '0.5rem 0 0', fontSize: '0.85rem' }}>
+                    Verification could not be completed for this claim — this is not a judgment
+                    that the claim is unsupported.
+                  </p>
+                )}
 
                 {openClaim === i && (
                   <div style={{ marginTop: '1rem', borderTop: '1px solid #262b36', paddingTop: '1rem' }}>
