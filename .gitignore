@@ -1,0 +1,17 @@
+node_modules
+.next
+.env*.local
+.vercel
+*.log
+__pycache__
+.venv
+
+# Runtime / upload temp artifacts
+.superbrain/
+data/uploads/*
+data/.upload_status.json
+data/.upload_lock
+data/*.test.mjs
+scripts/.cache/
+scripts/*.pyc
+tsconfig.tsbuildinfo

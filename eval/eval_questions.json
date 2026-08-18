@@ -1,0 +1,14 @@
+[
+  {
+    "question": "How does ObjectGraph improve on document-based context for agents?",
+    "expected_claims": ["ObjectGraph enables knowledge traversal rather than raw document retrieval"]
+  },
+  {
+    "question": "What problem does PSMAS address in multi-agent coordination?",
+    "expected_claims": ["PSMAS uses phase scheduling to reduce token cost in multi-agent coordination"]
+  },
+  {
+    "question": "What is the core mechanism for token efficiency in PSMAS?",
+    "expected_claims": []
+  }
+]

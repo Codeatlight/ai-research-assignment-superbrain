@@ -1,0 +1,19 @@
+{
+  "papers": [
+    {
+      "paper_id": "objectgraph",
+      "title": "ObjectGraph: From Document Injection to Knowledge Traversal - A Native File Format for the Agentic Era",
+      "authors": [],
+      "focus": ["agentic-ai", "knowledge-representation", "context-management"],
+      "source_file": "papers/2604.27820v1.pdf"
+    },
+    {
+      "paper_id": "psmas",
+      "title": "Phase-Scheduled Multi-Agent Systems for Token-Efficient Coordination (PSMAS)",
+      "authors": [],
+      "focus": ["multi-agent-systems", "token-efficiency", "agentic-ai"],
+      "source_file": "papers/2604.17400v1.pdf"
+    }
+  ],
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+}

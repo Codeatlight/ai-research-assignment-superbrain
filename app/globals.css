@@ -1,0 +1,74 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #0f1115;
+  color: #e6e8ee;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  line-height: 1.6;
+}
+
+a {
+  color: #6ea8fe;
+  text-decoration: none;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.card {
+  background: #171a21;
+  border: 1px solid #262b36;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.muted {
+  color: #8b93a3;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-right: 0.35rem;
+  background: #262b36;
+  color: #c6cddb;
+}
+
+/* Status chips */
+.status-supported {
+  background: #10351f;
+  color: #58d68b;
+  border: 1px solid #1f6b3d;
+}
+.status-partially_supported {
+  background: #3a2e08;
+  color: #f4c95d;
+  border: 1px solid #7a6117;
+}
+.status-not_supported {
+  background: #3a1215;
+  color: #f07b7b;
+  border: 1px solid #7a2027;
+}
+.status-insufficient_evidence {
+  background: #1d2433;
+  color: #8fb1e8;
+  border: 1px solid #33415e;
+}
+.status-unverified {
+  background: #241f16;
+  color: #c9a96a;
+  border: 1px solid #55442a;
+}
