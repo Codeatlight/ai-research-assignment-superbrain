@@ -98,39 +98,45 @@ function isBatchVerifyResult(d: unknown): d is { verifications: BatchVerifyResul
 }
 
 export async function POST(req: NextRequest) {
+  console.log('[ask] ask route started');
   try {
     const body = await req.json();
+    console.log('[ask] body parsed');
     const { question, queryEmbedding, paper_id } = body as {
       question?: string;
       queryEmbedding?: number[];
       paper_id?: string;
     };
     if (!question || typeof question !== 'string') {
+      console.log('[ask] validation failed: question');
       return NextResponse.json({ error: 'question is required' }, { status: 400 });
     }
     if (!queryEmbedding || !Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {
+      console.log('[ask] validation failed: queryEmbedding');
       return NextResponse.json(
         { error: 'queryEmbedding is required' },
         { status: 400 },
       );
     }
+    console.log('[ask] validation passed. embedding length:', queryEmbedding.length);
 
     const dataset = loadDataset();
-    // Paper-specific queries retrieve only from the named paper; a question
-    // that names no paper keeps corpus-wide retrieval (cross-paper allowed).
-    const resolvedPaperId = paper_id || detectPaperFromQuestion(question);
-    const retrieved = retrieveClaims(dataset, queryEmbedding, 10, RETRIEVAL_THRESHOLD, resolvedPaperId);
+    console.log('[ask] corpus loaded. number of claims:', dataset?.claims?.length);
 
-    // No claim clears the relevance threshold: return an explicit
-    // insufficient-evidence response instead of answering from weak context.
+    const resolvedPaperId = paper_id || detectPaperFromQuestion(question);
+    console.log('[ask] resolvedPaperId:', resolvedPaperId);
+
+    const retrieved = retrieveClaims(dataset, queryEmbedding, 10, RETRIEVAL_THRESHOLD, resolvedPaperId);
+    console.log('[ask] retrieval completed. retrieved count:', retrieved.length);
+
     if (retrieved.length === 0) {
+      console.log('[ask] returning insufficient evidence');
       return NextResponse.json({
         answer: 'No retrieved evidence in the corpus is relevant enough to this question to support a grounded answer.',
         claims: [],
       });
     }
 
-    // Only relevant claims/evidence go to the model; source refs are preserved.
     const evidenceContext: EvidenceContext[] = retrieved.map((r) => ({
       claim_id: r.claim.claim_id,
       paper_title: r.claim.paper_title,
@@ -139,30 +145,38 @@ export async function POST(req: NextRequest) {
       evidence_text: r.claim.evidence_text,
       source_location: r.claim.source_location,
     }));
+    console.log('[ask] context built. GROQ_API_KEY present:', !!process.env.GROQ_API_KEY, 'GROQ_MODEL name:', process.env.GROQ_MODEL || 'default(llama-3.3-70b-versatile)');
+    console.log('[ask] calling Groq for answer');
 
     const { answer, answer_claims } = await chatJSON<AnswerLLMResult>(
       ANSWER_SYSTEM,
       buildAnswerPrompt(question, retrieved),
       isAnswerLLMResult,
     );
+    console.log('[ask] Groq response received for answer');
 
-    const verifyLLM = (system: string, user: string) =>
-      chatJSON<{ verifications: BatchVerifyResult[] }>(
+    const verifyLLM = async (system: string, user: string) => {
+      console.log('[ask] calling Groq for verification');
+      const res = await chatJSON<{ verifications: BatchVerifyResult[] }>(
         system,
         user,
         isBatchVerifyResult,
       );
+      console.log('[ask] Groq response received for verification');
+      return res;
+    };
 
     const assessed = await assessClaims(
       answer_claims.map((text) => ({ claim_text: text })),
       evidenceContext,
       verifyLLM,
     );
+    console.log('[ask] assessment completed');
 
     return NextResponse.json({ answer, claims: assessed });
   } catch (err) {
-    // Diagnostic only — never log the key value, only its presence.
-    console.error('[ask] error:', err instanceof Error ? err.message : err);
+    console.error('[ask] error caught:', err instanceof Error ? err.stack || err.message : String(err));
+    console.error('[ask] error type:', typeof err, err ? (err as any).constructor?.name : 'null');
     console.error('[ask] GROQ_API_KEY present:', !!process.env.GROQ_API_KEY);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
